@@ -8,6 +8,9 @@ import { BrowserRouter } from'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 import app from './firebase';
+import { Provider } from'react-redux';
+import { store, persistor } from './store';
+import { PersistGate } from 'redux-persist/integration/react';
 
 // Create a client
 const queryClient = new QueryClient();
@@ -16,9 +19,13 @@ const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   // <React.StrictMode>
   <QueryClientProvider client={queryClient}>
-    <BrowserRouter>
-      <App />
-    </BrowserRouter>
+    <Provider store={store}>
+      <PersistGate loading={null} persistor={persistor}>
+        <BrowserRouter>
+          <App />
+        </BrowserRouter>
+      </PersistGate>
+    </Provider>
   </QueryClientProvider>
   // </React.StrictMode>
 );

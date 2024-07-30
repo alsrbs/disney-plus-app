@@ -2,11 +2,10 @@ import styled from 'styled-components';
 import React, {useState, useEffect} from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { getAuth, GoogleAuthProvider, onAuthStateChanged, signInWithPopup, signOut } from 'firebase/auth'
+import { useDispatch, useSelector } from 'react-redux';
+import { setUser, removeUser } from '../store/userSlice';
 
 function Nav() {
-
-  const initialUserData = localStorage.getItem('userData') ?
-    JSON.parse(localStorage.getItem('userData')) : {};
 
   const { pathname } = useLocation(); 
   const navigate = useNavigate();
@@ -16,7 +15,9 @@ function Nav() {
 
   const auth = getAuth();
   const provider = new GoogleAuthProvider();
-  const [userData, setUserData] = useState(initialUserData);
+
+  const dispatch = useDispatch();
+  const userData = useSelector(state => state.user);
 
   useEffect(() => {
     onAuthStateChanged(auth, (user) => {
@@ -53,8 +54,12 @@ function Nav() {
   const handleAuth = () => {
     signInWithPopup(auth, provider)
       .then(result => {
-        setUserData(result.user);
-        localStorage.setItem("userData", JSON.stringify(result.user));
+        dispatch(setUser({
+          id: result.user.uid,
+          name: result.user.displayName,
+          email: result.user.email,
+          photoURL: result.user.photoURL,
+        }));
       })
       .catch(error => {
         console.log(error);
@@ -64,8 +69,8 @@ function Nav() {
   const handleLogOut = () => {
     signOut(auth)
       .then(() => {
-        setUserData();
-        localStorage.removeItem("userData");
+        dispatch(removeUser());
+        navigate("/");
       })
       .catch((error) => {
         alert(error.message);
